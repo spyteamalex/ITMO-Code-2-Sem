@@ -5,8 +5,6 @@ import expression.Const;
 import expression.Priority;
 import expression.Variable;
 import expression.exceptions.exceptions.ParseExpressionException;
-import expression.parser.TripleParser;
-import expression.tools.ErrorTools;
 
 import java.util.List;
 import java.util.function.BinaryOperator;
@@ -22,20 +20,23 @@ public class ExpressionParser implements TripleParser {
         source = new StringReader(new StringSource(expression));
         AlgebraicExpression result = parseExpression(Priority.ZERO);
         skipSpaces();
-        ErrorTools.require(source.eof(),
-                new ParseExpressionException("Unexpected data found"));
+        if (!source.eof()) {
+            throw new ParseExpressionException("Unexpected data found");
+        }
         return result;
     }
 
     private AlgebraicExpression parseExpression(Priority minPriority) throws ParseExpressionException {
         AlgebraicExpression firstOperand;
         skipSpaces();
-        ErrorTools.require(!source.eof(),
-                new ParseExpressionException("Unexpected end of file"));
+        if (source.eof()) {
+            throw new ParseExpressionException("Unexpected end of file");
+        }
         if (source.take('(')) {
             firstOperand = parseExpression(Priority.ZERO);
-            ErrorTools.require(source.take(')'),
-                    new ParseExpressionException(") expected, but not found"));
+            if (!source.take(')')) {
+                throw new ParseExpressionException(") expected, but not found");
+            }
         } else if (Character.isDigit(source.test())) {
             firstOperand = parseConst();
         } else {
@@ -62,8 +63,9 @@ public class ExpressionParser implements TripleParser {
     }
 
     private AlgebraicExpression parseUnary(Priority minPriority) throws ParseExpressionException {
-        ErrorTools.require(minPriority.compare(Priority.UNARY) <= 0,
-                new ParseExpressionException("Could not parse unary operator because its priority is too low"));
+        if (minPriority.compare(Priority.UNARY) > 0) {
+            throw new ParseExpressionException("Could not parse unary operator because its priority is too low");
+        }
         skipSpaces();
         if (source.take('-')) {
             if (Character.isDigit(source.test())) {
@@ -79,7 +81,9 @@ public class ExpressionParser implements TripleParser {
             return new CheckedLog10(parseOperand(Priority.UNARY, true));
         } else if (source.test('x') || source.test('y') || source.test('z')) {
             String name = String.valueOf(source.take());
-            ErrorTools.require(!Character.isLetterOrDigit(source.test()), unknownOperatorException());
+            if (Character.isLetterOrDigit(source.test())) {
+                throw unknownOperatorException();
+            }
             return new Variable(name);
         } else {
             throw unknownOperatorException();
@@ -120,7 +124,9 @@ public class ExpressionParser implements TripleParser {
     }
 
     public AlgebraicExpression parseOperand(Priority minPriority, boolean wordOperator) throws ParseExpressionException {
-        ErrorTools.require(!wordOperator || !Character.isLetterOrDigit(source.test()), unknownOperatorException());
+        if (wordOperator && Character.isLetterOrDigit(source.test())) {
+            throw unknownOperatorException();
+        }
         skipSpaces();
         return parseExpression(minPriority);
     }

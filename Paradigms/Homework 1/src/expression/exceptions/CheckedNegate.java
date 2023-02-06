@@ -1,8 +1,8 @@
 package expression.exceptions;
 
-import expression.*;
-import expression.exceptions.exceptions.OverflowException;
-import expression.tools.ErrorTools;
+import expression.AlgebraicExpression;
+import expression.Priority;
+import expression.UnaryOperation;
 import expression.tools.MathTools;
 
 public class CheckedNegate extends UnaryOperation {

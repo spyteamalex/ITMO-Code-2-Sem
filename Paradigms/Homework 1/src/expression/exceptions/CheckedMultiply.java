@@ -1,9 +1,7 @@
 package expression.exceptions;
 
 import expression.AlgebraicExpression;
-import expression.AssociativeOperation;
 import expression.Multiply;
-import expression.Priority;
 import expression.tools.MathTools;
 
 public class CheckedMultiply extends Multiply {

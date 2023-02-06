@@ -43,7 +43,7 @@ public class MathTools {
     public static int exactReverse(int value) {
         int result = 0;
         final int origin = value;
-        int compareRes = -1000000000 < value && value < 1000000000 ? 1 : 0;
+        int compareRes = -1000000000 < value && value < 1000000000 ? 1 : 0;     //-1 - out of bounds, 0 - on a bound, 1 - in bounds
         for (int i = 0; value != 0; i++) {
             result *= 10;
             int digit = value % 10;
@@ -53,7 +53,9 @@ public class MathTools {
                 compareRes = compareDigit(digit, minBound[i], maxBound[i]);
             }
         }
-        ErrorTools.require(compareRes >= 0, new OverflowException("Overflow while reversing " + origin));
+        if(compareRes < 0) {
+            throw new OverflowException("Overflow while reversing " + origin);
+        }
         return result;
     }
 
@@ -70,36 +72,50 @@ public class MathTools {
         boolean bSign = b >= 0;
         int result = a + b;
         boolean resultSign = result >= 0;
-        ErrorTools.require((aSign == resultSign) || (bSign == resultSign),
-                new OverflowException("Overflow while summing " + a + " and " + b));
+        if ((aSign != resultSign) && (bSign != resultSign)) {
+            throw new OverflowException("Overflow while summing " + a + " and " + b);
+        }
         return result;
     }
 
+    private static RuntimeException multiplyException(int a, int b) {
+        return new OverflowException("Overflow while multiplying " + a + " and " + b);
+    }
     public static int exactMultiply(int a, int b) {
-        ArithmeticException exception = new OverflowException("Overflow while multiplying " + a + " and " + b);
         if (a == 0 || b == 0) {
             return 0;
         }
         if (a > 0) {
             if (b > 0) {
-                ErrorTools.require(a <= Integer.MAX_VALUE / b, exception);
+                if (a > Integer.MAX_VALUE / b) {
+                    throw multiplyException(a, b);
+                }
             } else {
-                ErrorTools.require(b >= Integer.MIN_VALUE / a, exception);
+                if (b < Integer.MIN_VALUE / a) {
+                    throw multiplyException(a, b);
+                }
             }
         } else {
             if (b > 0) {
-                ErrorTools.require(a >= Integer.MIN_VALUE / b, exception);
+                if (a < Integer.MIN_VALUE / b) {
+                    throw multiplyException(a, b);
+                }
             } else {
-                ErrorTools.require(a >= Integer.MAX_VALUE / b, exception);
+                if (a < Integer.MAX_VALUE / b) {
+                    throw multiplyException(a, b);
+                }
             }
         }
         return a * b;
     }
 
     public static int exactDivide(int a, int b) {
-        ErrorTools.require(b != 0, new UnsupportedOperandsException("Division by zero"));
-        ErrorTools.require(a != Integer.MIN_VALUE || b != -1,
-                new OverflowException("Overflow while dividing " + a + " by " + b));
+        if (b == 0) {
+            throw new UnsupportedOperandsException("Division by zero");
+        }
+        if (a == Integer.MIN_VALUE && b == -1) {
+            throw new OverflowException("Overflow while dividing " + a + " by " + b);
+        }
         return a / b;
     }
 
@@ -108,17 +124,22 @@ public class MathTools {
         boolean aSign = a >= 0;
         boolean bSign = b >= 0;
         boolean resultSign = result >= 0;
-        ErrorTools.require((aSign == resultSign) || (bSign != resultSign),
-                new OverflowException("Overflow while subtracting " + a + " and " + b));
+        if ((aSign != resultSign) && (bSign == resultSign)) {
+            throw new OverflowException("Overflow while subtracting " + a + " and " + b);
+        }
         return result;
     }
 
     public static int exactNegate(int a) {
-        ErrorTools.require(a != Integer.MIN_VALUE, new OverflowException("Overflow while taking negate from " + a));
+        if (a == Integer.MIN_VALUE) {
+            throw new OverflowException("Overflow while taking negate from " + a);
+        }
         return -a;
     }
     public static int exactLog10(int a) {
-        ErrorTools.require(a > 0, new UnsupportedOperandsException("Can't take log of non-positive number"));
+        if (a <= 0) {
+            throw new UnsupportedOperandsException("Can't take log of non-positive number");
+        }
         int res = 0;
         while (a >= 10) {
             a /= 10;
@@ -128,8 +149,12 @@ public class MathTools {
     }
 
     public static int exactPow10(int a) {
-        ErrorTools.require(a <= 9, new OverflowException("Overflow while taking pow 10 from " + a));
-        ErrorTools.require(a >= 0, new UnsupportedOperandsException("Can't take pow 10 of negative number"));
+        if (a > 9){
+            throw new OverflowException("Overflow while taking pow 10 from " + a);
+        }
+        if (a < 0) {
+            throw new UnsupportedOperandsException("Can't take pow 10 of negative number");
+        }
         int res = 1;
         if ((a & 0b1) != 0) {
             res *= 10;

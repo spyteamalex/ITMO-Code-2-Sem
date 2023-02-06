@@ -1,8 +1,4 @@
 package expression.exceptions;
-
-/**
- * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
- */
 public class StringSource implements CharSource {
     private final String data;
     private int pos = -1;

@@ -1,6 +1,6 @@
 package expression.exceptions.exceptions;
 
-public class OverflowException extends ArithmeticException{
+public class OverflowException extends ArithmeticException {
     public OverflowException() {
     }
 

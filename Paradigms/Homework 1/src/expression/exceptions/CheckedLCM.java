@@ -2,10 +2,8 @@ package expression.exceptions;
 
 import expression.AlgebraicExpression;
 import expression.AssociativeOperation;
-import expression.exceptions.exceptions.OverflowException;
-import expression.tools.ErrorTools;
-import expression.tools.MathTools;
 import expression.Priority;
+import expression.tools.MathTools;
 
 public class CheckedLCM extends AssociativeOperation {
     public CheckedLCM(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand) {
