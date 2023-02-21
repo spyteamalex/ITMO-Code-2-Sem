@@ -2,7 +2,7 @@ package expression;
 
 public class Multiply extends AssociativeOperation {
     public Multiply(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand) {
-        super(leftOperand, rightOperand, Priority.MULTIPLY);
+        super(leftOperand, rightOperand);
     }
 
     @Override
@@ -13,5 +13,10 @@ public class Multiply extends AssociativeOperation {
     @Override
     public int calc(int left, int right) {
         return left * right;
+    }
+
+    @Override
+    public Priority getPriority() {
+        return Priority.MULTIPLY;
     }
 }

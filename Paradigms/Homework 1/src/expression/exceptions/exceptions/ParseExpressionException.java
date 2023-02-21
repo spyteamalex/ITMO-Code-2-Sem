@@ -1,6 +1,6 @@
 package expression.exceptions.exceptions;
 
-public class ParseExpressionException extends Exception{
+public class ParseExpressionException extends Exception {
     public ParseExpressionException() {
     }
 

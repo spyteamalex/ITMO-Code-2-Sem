@@ -1,34 +1,60 @@
 package expression;
 
-public enum Priority {
-    ZERO(0),
-    GCD(1),
-    LCM(1),
-    SUM(2),
+import java.util.Objects;
 
-    MULTIPLY(3),
-    DIVIDE(3),
-    UNARY(4),
-    VALUE(5),
-    INFINITY(6);
+public final class Priority implements Comparable<Priority>{
+    public static final Priority MIN = Priority.of(Integer.MIN_VALUE),
+    GCD = Priority.equal(MIN),
+    LCM = Priority.equal(MIN),
+    SUM = Priority.of(200),
 
-    private final int prior;
-    Priority(int prior) {
-        this.prior = prior;
+    MULTIPLY = Priority.of(300),
+    DIVIDE = Priority.equal(MULTIPLY),
+    MAX = Priority.of(Integer.MAX_VALUE);
+
+    public final int intValue;
+
+    private Priority(int intValue) {
+        this.intValue = intValue;
     }
 
-    public int compare(Priority that) {
-        return Integer.compare(prior, that.prior);
+    public static Priority of(int intValue) {
+        return new Priority(intValue);
+    }
+
+    public static Priority equal(Priority priority) {
+        return of(priority.intValue);
     }
 
     public Priority higher() {
-        return switch (this) {
-            case ZERO -> GCD;
-            case GCD, LCM -> SUM;
-            case SUM -> MULTIPLY;
-            case MULTIPLY, DIVIDE -> UNARY;
-            case UNARY -> VALUE;
-            case VALUE, INFINITY -> INFINITY;
-        };
+        if (equals(MAX)) {
+            return MAX;
+        }
+        return of(intValue + 1);
+    }
+
+    public Priority lower() {
+        if (equals(MIN)) {
+            return MIN;
+        }
+        return of(intValue - 1);
+    }
+
+    @Override
+    public int compareTo(Priority priority) {
+        return Integer.compare(intValue, priority.intValue);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Priority priority = (Priority) o;
+        return intValue == priority.intValue;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(intValue);
     }
 }

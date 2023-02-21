@@ -7,7 +7,7 @@ import expression.tools.MathTools;
 
 public class CheckedLCM extends AssociativeOperation {
     public CheckedLCM(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand) {
-        super(leftOperand, rightOperand, Priority.LCM);
+        super(leftOperand, rightOperand);
     }
 
     @Override
@@ -18,5 +18,10 @@ public class CheckedLCM extends AssociativeOperation {
     @Override
     public int calc(int left, int right) {
         return MathTools.exactLCM(left, right);
+    }
+
+    @Override
+    public Priority getPriority() {
+        return Priority.LCM;
     }
 }

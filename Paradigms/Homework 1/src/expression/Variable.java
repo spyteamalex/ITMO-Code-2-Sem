@@ -21,7 +21,7 @@ public class Variable implements AlgebraicExpression {
 
     @Override
     public Priority getPriority() {
-        return Priority.VALUE;
+        return Priority.MAX;
     }
 
     @Override

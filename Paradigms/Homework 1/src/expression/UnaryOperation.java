@@ -11,7 +11,7 @@ public abstract class UnaryOperation implements AlgebraicExpression {
 
     @Override
     public String toMiniString() {
-        if (operand.getPriority().compare(getPriority()) >= 0) {
+        if (operand.getPriority().compareTo(getPriority()) >= 0) {
             return getOperatorSymbol() + " " + operand.toMiniString();
         }
         return getOperatorSymbol() + "(" + operand.toMiniString() + ")";
@@ -35,12 +35,16 @@ public abstract class UnaryOperation implements AlgebraicExpression {
 
     @Override
     public int evaluate(int x, int y, int z) {
-        int op = operand.evaluate(x, y, z);
-        return calc(op);
+        return calc(operand.evaluate(x, y, z));
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(operand, getOperatorSymbol());
+    }
+
+    @Override
+    public Priority getPriority() {
+        return Priority.MAX;
     }
 }

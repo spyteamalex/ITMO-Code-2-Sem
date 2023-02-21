@@ -24,6 +24,7 @@ public class Main {
             System.err.println("Parse error: " + e.getMessage());
             return;
         }
+        System.out.println("Parsed: " + expression);
         System.out.printf("%10s %10s %10s %10s\n", "x", "y", "z", "f");
         while (true) {
             int x, y, z;

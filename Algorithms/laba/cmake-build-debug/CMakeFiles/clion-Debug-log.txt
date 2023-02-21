@@ -1,0 +1,4 @@
+/home/spyteamalex/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/223.7571.171/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/spyteamalex/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/223.7571.171/bin/ninja/linux/ninja -G Ninja -S /run/media/spyteamalex/Shared/ITMO/ITMO-Code-2-Sem/Algorithms/laba -B /run/media/spyteamalex/Shared/ITMO/ITMO-Code-2-Sem/Algorithms/laba/cmake-build-debug
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /run/media/spyteamalex/Shared/ITMO/ITMO-Code-2-Sem/Algorithms/laba/cmake-build-debug

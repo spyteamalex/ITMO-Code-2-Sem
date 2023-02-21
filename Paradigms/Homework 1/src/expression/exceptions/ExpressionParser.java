@@ -10,43 +10,68 @@ import java.util.List;
 import java.util.function.BinaryOperator;
 
 public class ExpressionParser implements TripleParser {
-    public ExpressionParser() {
-        super();
+    private TokenReader source;
+    private record BinaryOperationUnit(String operator, Priority priority, BinaryOperator<AlgebraicExpression> constructor) {}
+
+    private static final List<BinaryOperationUnit> BINARY_OPERATIONS = List.of(
+            binary("+", Priority.SUM, CheckedAdd::new),
+            binary("-", Priority.SUM, CheckedSubtract::new),
+            binary("*", Priority.MULTIPLY, CheckedMultiply::new),
+            binary("/", Priority.DIVIDE, CheckedDivide::new),
+            binary("gcd", Priority.GCD, CheckedGCD::new),
+            binary("lcm", Priority.LCM, CheckedLCM::new)
+    );
+
+    private static BinaryOperationUnit binary(
+            final String operator,
+            final Priority priority,
+            final BinaryOperator<AlgebraicExpression> constructor
+    ) {
+        return new BinaryOperationUnit(operator, priority, constructor);
     }
 
-    private StringReader source;
+    public ExpressionParser() {
+    }
 
     public AlgebraicExpression parse(String expression) throws ParseExpressionException {
-        source = new StringReader(new StringSource(expression));
-        AlgebraicExpression result = parseExpression(Priority.ZERO);
-        skipSpaces();
+        source = new TokenReader(new StringSource(expression));
+        AlgebraicExpression result = parseClause(Priority.MIN);
         if (!source.eof()) {
-            throw new ParseExpressionException("Unexpected data found");
+            throw new ParseExpressionException("Unexpected data at position " + source.getPosition() + " found: " + source.take());
         }
         return result;
     }
 
-    private AlgebraicExpression parseExpression(Priority minPriority) throws ParseExpressionException {
-        AlgebraicExpression firstOperand;
-        skipSpaces();
+    public AlgebraicExpression parseClause(Priority minPriority) throws ParseExpressionException {
         if (source.eof()) {
-            throw new ParseExpressionException("Unexpected end of file");
+            throw new ParseExpressionException("Unexpected end of data at position " + source.getPosition());
         }
-        if (source.take('(')) {
-            firstOperand = parseExpression(Priority.ZERO);
-            if (!source.take(')')) {
-                throw new ParseExpressionException(") expected, but not found");
+        if (source.test(")")) {
+            throw new ParseExpressionException("Unexpected end of clause at position " + source.getPosition());
+        }
+        AlgebraicExpression firstOperand = parseOperand();
+        while (!source.eof() && !source.test(")")) {
+            AlgebraicExpression buffer = parseBinary(firstOperand, minPriority);
+            if (buffer == null) {
+                break;
             }
-        } else if (Character.isDigit(source.test())) {
+            firstOperand = buffer;
+        }
+        return firstOperand;
+    }
+
+    private AlgebraicExpression parseOperand() throws ParseExpressionException {
+        AlgebraicExpression firstOperand;
+        if (source.take("(")) {
+            firstOperand = parseClause(Priority.MIN);
+            if (!source.take(")")) {
+                throw new ParseExpressionException("End of clause expected at position " + source.getPosition() + ", but not found");
+            }
+        } else if (Character.isDigit(source.get().charAt(0))) {
             firstOperand = parseConst();
         } else {
-            firstOperand = parseUnary(minPriority);
+            firstOperand = parseUnary();
         }
-        AlgebraicExpression buffer = parseBinary(firstOperand, minPriority);
-        do {
-            firstOperand = buffer;
-            buffer = parseBinary(firstOperand, minPriority);
-        } while (buffer != firstOperand);
         return firstOperand;
     }
 
@@ -55,85 +80,46 @@ public class ExpressionParser implements TripleParser {
     }
 
     private AlgebraicExpression parseConst(String prefix) {
-        StringBuilder data = new StringBuilder(prefix);
-        while (Character.isDigit(source.test())) {
-            data.append(source.take());
-        }
-        return new Const(Integer.parseInt(data.toString()));
+        return new Const(Integer.parseInt(prefix + source.take()));
     }
 
-    private AlgebraicExpression parseUnary(Priority minPriority) throws ParseExpressionException {
-        if (minPriority.compare(Priority.UNARY) > 0) {
-            throw new ParseExpressionException("Could not parse unary operator because its priority is too low");
-        }
-        skipSpaces();
-        if (source.take('-')) {
-            if (Character.isDigit(source.test())) {
-                return parseConst("-");
-            } else {
-                return new CheckedNegate(parseOperand(Priority.UNARY, false));
+    private AlgebraicExpression parseUnary() throws ParseExpressionException {
+        int position = source.getPosition();
+        String token = source.take();
+        return switch (token) {
+            case "-" -> {
+                if ((source.getPosition() - position) > token.length() || !Character.isDigit(source.get().charAt(0))) {
+                    yield new CheckedNegate(parseClause(Priority.MAX));
+                } else {
+                    yield parseConst("-");
+                }
             }
-        } else if (source.take("reverse")) {
-            return new CheckedReverse(parseOperand(Priority.UNARY, true));
-        } else if (source.take("pow10")) {
-            return new CheckedPow10(parseOperand(Priority.UNARY, true));
-        } else if (source.take("log10")) {
-            return new CheckedLog10(parseOperand(Priority.UNARY, true));
-        } else if (source.test('x') || source.test('y') || source.test('z')) {
-            String name = String.valueOf(source.take());
-            if (Character.isLetterOrDigit(source.test())) {
-                throw unknownOperatorException();
-            }
-            return new Variable(name);
-        } else {
-            throw unknownOperatorException();
-        }
+            // todo мапа
+            // todo указывать, позицию, где падает
+            // todo индексация с 1
+            case "reverse" -> new CheckedReverse(parseClause(Priority.MAX));
+            case "pow10" -> new CheckedPow10(parseClause(Priority.MAX));
+            case "log10" -> new CheckedLog10(parseClause(Priority.MAX));
+            case "x", "y", "z" -> new Variable(token);
+            default -> throw unknownOperatorException(position, token, "unary");
+        };
     }
-
-    private record OperationUnit(String operator, Priority priority, BinaryOperator<AlgebraicExpression> constructor) {}
-    private static final List<OperationUnit> binaryOperations = List.of(
-            new OperationUnit("+", Priority.SUM, CheckedAdd::new),
-            new OperationUnit("-", Priority.SUM, CheckedSubtract::new),
-            new OperationUnit("*", Priority.MULTIPLY, CheckedMultiply::new),
-            new OperationUnit("/", Priority.DIVIDE, CheckedDivide::new),
-            new OperationUnit("gcd", Priority.GCD, CheckedGCD::new),
-            new OperationUnit("lcm", Priority.LCM, CheckedLCM::new)
-    );
 
     private AlgebraicExpression parseBinary(AlgebraicExpression firstOperand, Priority minPriority) throws ParseExpressionException {
-        skipSpaces();
-        if (source.eof() || source.test() == ')') {
-            return firstOperand;
-        }
-        for (OperationUnit operation : binaryOperations) {
+        for (BinaryOperationUnit operation : BINARY_OPERATIONS) {
             if (!source.test(operation.operator)) {
                 continue;
             }
-            if (minPriority.compare(operation.priority) > 0) {
-                return firstOperand;
+            if (minPriority.compareTo(operation.priority) > 0) {
+                return null;
             }
-            source.take(operation.operator);
-            boolean isWord = Character.isLetterOrDigit(operation.operator.charAt(operation.operator.length() - 1));
-            return operation.constructor.apply(firstOperand, parseOperand(operation.priority.higher(), isWord));
-        }
-        throw unknownOperatorException();
-    }
-
-    private ParseExpressionException unknownOperatorException() {
-        return new ParseExpressionException("Unknown operator at position " + source.getPosition() + " found");
-    }
-
-    public AlgebraicExpression parseOperand(Priority minPriority, boolean wordOperator) throws ParseExpressionException {
-        if (wordOperator && Character.isLetterOrDigit(source.test())) {
-            throw unknownOperatorException();
-        }
-        skipSpaces();
-        return parseExpression(minPriority);
-    }
-
-    public void skipSpaces() {
-        while (Character.isWhitespace(source.test())) {
             source.take();
+            return operation.constructor.apply(firstOperand, parseClause(operation.priority.higher()));
         }
+        throw unknownOperatorException(source.getPosition(), source.get(), "binary");
+    }
+
+    private static ParseExpressionException unknownOperatorException(int position, String operator, String operatorType) {
+        return new ParseExpressionException("Unknown " + operatorType + " operator found at position " + position + ": " + operator);
     }
 }

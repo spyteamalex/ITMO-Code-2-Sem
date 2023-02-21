@@ -3,40 +3,38 @@ package expression;
 import java.util.Objects;
 
 public abstract class BinaryOperation implements AlgebraicExpression {
-
-    protected final Priority priority;
     protected final AlgebraicExpression leftOperand;
     protected final AlgebraicExpression rightOperand;
 
-    protected BinaryOperation(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand, Priority priority) {
-        this.priority = priority;
+    protected BinaryOperation(final AlgebraicExpression leftOperand, final AlgebraicExpression rightOperand) {
         this.leftOperand = leftOperand;
         this.rightOperand = rightOperand;
     }
 
     @Override
     public String toMiniString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        if (leftNeedsBrackets()) {
-            stringBuilder.append("(").append(leftOperand.toMiniString()).append(")");
-        } else {
-            stringBuilder.append(leftOperand.toMiniString());
-        }
+        final StringBuilder stringBuilder = new StringBuilder();
+        addOperand(stringBuilder, leftOperand, leftNeedsBrackets());
         stringBuilder.append(" ").append(getOperatorSymbol()).append(" ");
-        if (rightNeedsBrackets()) {
-            stringBuilder.append("(").append(rightOperand.toMiniString()).append(")");
-        } else {
-            stringBuilder.append(rightOperand.toMiniString());
-        }
+        addOperand(stringBuilder, rightOperand, rightNeedsBrackets());
         return stringBuilder.toString();
     }
 
+    private StringBuilder addOperand(StringBuilder stringBuilder, AlgebraicExpression expression, boolean brackets) {
+        if (brackets) {
+            stringBuilder.append("(").append(expression.toMiniString()).append(")");
+        } else {
+            stringBuilder.append(expression.toMiniString());
+        }
+        return stringBuilder;
+    }
+
     protected boolean leftNeedsBrackets() {
-        return leftOperand.getPriority().compare(getPriority()) < 0;
+        return leftOperand.getPriority().compareTo(getPriority()) < 0;
     }
 
     protected boolean rightNeedsBrackets() {
-        return rightOperand.getPriority().compare(getPriority()) <= 0;
+        return rightOperand.getPriority().compareTo(getPriority()) <= 0;
     }
 
     @Override
@@ -47,26 +45,21 @@ public abstract class BinaryOperation implements AlgebraicExpression {
     protected abstract String getOperatorSymbol();
 
     @Override
-    public Priority getPriority() {
-        return priority;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null || getClass() != obj.getClass()) return false;
-        BinaryOperation that = (BinaryOperation) obj;
+        final BinaryOperation that = (BinaryOperation) obj;
         return Objects.equals(leftOperand, that.leftOperand) && Objects.equals(rightOperand, that.rightOperand);
     }
 
     public abstract int calc(int left, int right);
 
     @Override
-    public int evaluate(int x, int y, int z) {
+    public int evaluate(final int x, final int y, final int z) {
         return calc(leftOperand.evaluate(x, y, z), rightOperand.evaluate(x, y, z));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(priority, leftOperand, rightOperand, getOperatorSymbol());
+        return Objects.hash(getPriority(), leftOperand, rightOperand, getOperatorSymbol());
     }
 }

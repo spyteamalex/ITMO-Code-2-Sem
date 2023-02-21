@@ -1,0 +1,3 @@
+/run/media/spyteamalex/Shared/ITMO/ITMO-Code-2-Sem/Algorithms/laba/cmake-build-debug/CMakeFiles/laba.dir
+/run/media/spyteamalex/Shared/ITMO/ITMO-Code-2-Sem/Algorithms/laba/cmake-build-debug/CMakeFiles/edit_cache.dir
+/run/media/spyteamalex/Shared/ITMO/ITMO-Code-2-Sem/Algorithms/laba/cmake-build-debug/CMakeFiles/rebuild_cache.dir

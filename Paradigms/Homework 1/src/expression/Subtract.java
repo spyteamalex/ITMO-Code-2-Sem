@@ -2,7 +2,7 @@ package expression;
 
 public class Subtract extends BinaryOperation {
     public Subtract(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand) {
-        super(leftOperand, rightOperand, Priority.SUM);
+        super(leftOperand, rightOperand);
     }
 
     @Override
@@ -13,5 +13,10 @@ public class Subtract extends BinaryOperation {
     @Override
     public int calc(int left, int right) {
         return left - right;
+    }
+
+    @Override
+    public Priority getPriority() {
+        return Priority.SUM;
     }
 }

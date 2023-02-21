@@ -1,8 +1,8 @@
 package expression;
 
 public abstract class AssociativeOperation extends BinaryOperation {
-    protected AssociativeOperation(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand, Priority priority) {
-        super(leftOperand, rightOperand, priority);
+    protected AssociativeOperation(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand) {
+        super(leftOperand, rightOperand);
     }
 
     @Override

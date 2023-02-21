@@ -2,7 +2,7 @@ package expression;
 
 public class Divide extends BinaryOperation {
     public Divide(AlgebraicExpression leftOperand, AlgebraicExpression rightOperand) {
-        super(leftOperand, rightOperand, Priority.DIVIDE);
+        super(leftOperand, rightOperand);
     }
 
     @Override
@@ -13,5 +13,10 @@ public class Divide extends BinaryOperation {
     @Override
     public int calc(int left, int right) {
         return left / right;
+    }
+
+    @Override
+    public Priority getPriority() {
+        return Priority.DIVIDE;
     }
 }

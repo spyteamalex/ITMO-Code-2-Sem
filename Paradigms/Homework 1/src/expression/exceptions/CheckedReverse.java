@@ -15,11 +15,6 @@ public class CheckedReverse extends UnaryOperation {
     }
 
     @Override
-    public Priority getPriority() {
-        return Priority.UNARY;
-    }
-
-    @Override
     protected String getOperatorSymbol() {
         return "reverse";
     }
